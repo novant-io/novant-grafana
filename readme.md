@@ -1,3 +1,3 @@
-# Novant API data source for Grafana
+# Novant plugin for Grafana
 
 TODO
