@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Novant",
+  "id": "novant-datasource",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_novant-datasource",
+  "info": {
+    "description": "Novant API data source",
+    "author": {
+      "name": "Novant",
+      "url": "https://novant.io/"
+    },
+    "keywords": [
+      "novant",
+      "iot",
+      "json",
+      "api"
+    ],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/novant-io/novant-grafana"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/novant-io/novant-grafana/blob/master/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=7.0.0",
+    "plugins": []
+  }
+}
