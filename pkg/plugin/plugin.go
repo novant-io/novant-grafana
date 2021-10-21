@@ -11,14 +11,10 @@ package plugin
 import (
   "context"
   "encoding/json"
-  // "fmt"
-  // "math/rand"
-  // "net/http"
+  "errors"
   "net/url"
-  // "strings"
+  "strings"
   "time"
-  // "io/ioutil"
-  // "os"
 
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   "github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
@@ -81,18 +77,39 @@ func (d *NvDatasource) QueryData(ctx context.Context, req *backend.QueryDataRequ
   return response, nil
 }
 
-type queryModel struct {
-  // WithStreaming bool `json:"withStreaming"`
-}
-
 func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
   response := backend.DataResponse{}
 
-  // Unmarshal the JSON into our queryModel.
-  var qm queryModel
-
-  response.Error = json.Unmarshal(query.JSON, &qm)
+  // unmarshal the JSON params
+  params := map[string]interface{}{}
+  response.Error = json.Unmarshal(query.JSON, &params)
   if response.Error != nil {
+    return response
+  }
+  deviceId := strings.TrimSpace(params["deviceId"].(string))
+  pointIds := strings.TrimSpace(params["pointIds"].(string))
+
+  // validate
+  if deviceId == "" {
+    response.Error = errors.New("Missing deviceId value")
+    return response
+  }
+
+  // validate
+  if pointIds == "" {
+    response.Error = errors.New("Missing pointIds value")
+    return response
+  }
+
+  // query /trends for data
+  args := url.Values{
+    "device_id": {deviceId},
+    "point_ids": {pointIds},
+    "date":      {query.TimeRange.From.Format("2006-01-02")},
+  }
+  _, err := novantReq(pCtx, "trends", args)
+  if err != nil {
+    response.Error = err
     return response
   }
 

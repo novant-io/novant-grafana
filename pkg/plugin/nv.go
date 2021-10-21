@@ -18,12 +18,12 @@ import (
   "github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
-func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string]string, error) {
+func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string]interface{}, error) {
   apiKey := cx.DataSourceInstanceSettings.DecryptedSecureJSONData["apiKey"]
   client := &http.Client{}
   reader := strings.NewReader(args.Encode())
 
-  req, err := http.NewRequest("POST", "https://api.novant.io/v1/ping", reader)
+  req, err := http.NewRequest("POST", "https://api.novant.io/v1/" + op, reader)
   if err != nil {
     return nil, err
   }
@@ -43,7 +43,7 @@ func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string
   }
 
   // decode json
-  resMap := map[string]string{}
+  resMap := map[string]interface{}{}
   err = json.Unmarshal([]byte(resBytes), &resMap)
   if err != nil {
     return nil, err
@@ -51,7 +51,7 @@ func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string
 
   // check status code
   if res.StatusCode != 200 {
-    return nil, errors.New(resMap["err_msg"])
+    return nil, errors.New(resMap["err_msg"].(string))
   }
 
   return resMap, nil
