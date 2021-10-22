@@ -86,6 +86,7 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
   if response.Error != nil {
     return response
   }
+  ts := query.TimeRange.From
   deviceId := strings.TrimSpace(params["deviceId"].(string))
   pointIds := strings.TrimSpace(params["pointIds"].(string))
 
@@ -105,21 +106,47 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
   args := url.Values{
     "device_id": {deviceId},
     "point_ids": {pointIds},
-    "date":      {query.TimeRange.From.Format("2006-01-02")},
+    "date":      {ts.Format("2006-01-02")},
+    "interval":  {"15min"}, // TODO
   }
-  _, err := novantReq(pCtx, "trends", args)
+  trends, err := novantReq(pCtx, "trends", args)
   if err != nil {
     response.Error = err
     return response
   }
 
-  // create data frame response.
-  frame := data.NewFrame("response")
+  // map values to frame format
+  size := uint64(trends["size"].(float64))
+  tss  := make([]time.Time, size)
+  vals := make([]float64, size)
+  list := trends["data"].([]interface{})
+  for i, row := range list {
+    rmap := row.(map[string]interface{})
 
-  // add fields.
+    // decode ts
+    ts, err := time.Parse(time.RFC3339, rmap["ts"].(string))
+    if err != nil {
+      response.Error = err
+      return response
+    }
+
+    // TODO: what do we do for nil/nan?
+    val := rmap["p182"]
+    switch t := val.(type) {
+      case float64:
+        tss[i]  = ts
+        vals[i] = val.(float64)
+
+      default:
+        _ = t
+    }
+  }
+
+  // create data frame response
+  frame := data.NewFrame("response")
   frame.Fields = append(frame.Fields,
-    data.NewField("time", nil, []time.Time{query.TimeRange.From, query.TimeRange.To}),
-    data.NewField("values", nil, []int64{10, 20}),
+    data.NewField("time", nil, tss), //[]time.Time{query.TimeRange.From, query.TimeRange.To}),
+    data.NewField("values", nil, vals),
   )
 
   // If query called with streaming on then return a channel
@@ -136,9 +163,8 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
   }
   */
 
-  // add the frames to the response.
+  // add the frames to the response
   response.Frames = append(response.Frames, frame)
-
   return response
 }
 
