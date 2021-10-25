@@ -25,16 +25,10 @@ export class QueryEditor extends PureComponent<Props> {
   };
 
   onPointIdsChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { onChange, query } = this.props;
+    const { onChange, query, onRunQuery } = this.props;
     onChange({ ...query, pointIds: event.target.value });
+    onRunQuery();
   };
-
-  // onWithStreamingChange = (event: SyntheticEvent<HTMLInputElement>) => {
-  //   const { onChange, query, onRunQuery } = this.props;
-  //   onChange({ ...query, withStreaming: event.currentTarget.checked });
-  //   // executes the query
-  //   onRunQuery();
-  // };
 
   render() {
     const query = defaults(this.props.query, defaultQuery);
