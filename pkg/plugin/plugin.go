@@ -115,31 +115,39 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
     return response
   }
 
+  // stub out working data structures
+  tss  := []time.Time{}
+  vals := [][]float64{}
+  pids := strings.Split(pointIds, ",")
+  for _ = range pids {
+    vals = append(vals, []float64{})
+  }
+
   // map values to frame format
-  ids  := strings.Split(pointIds, ",")
-  size := uint64(trends["size"].(float64))
-  tss  := make([]time.Time, size)
-  vals := make([]float64, size)
   list := trends["data"].([]interface{})
-  for i, row := range list {
-    rmap := row.(map[string]interface{})
+  for i := range list {
+    row := list[i].(map[string]interface{})
 
     // decode ts
-    ts, err := time.Parse(time.RFC3339, rmap["ts"].(string))
+    ts, err := time.Parse(time.RFC3339, row["ts"].(string))
     if err != nil {
       response.Error = err
       return response
     }
+    tss = append(tss, ts)
 
-    // TODO: what do we do for nil/nan?
-    val := rmap[ids[0]]
-    switch t := val.(type) {
-      case float64:
-        tss[i]  = ts
-        vals[i] = val.(float64)
+    // map trends to data frame
+    for j := range pids {
+      pid := pids[j]
+      val := row[pid]
+      switch t := val.(type) {
+        case float64:
+          vals[j] = append(vals[j], val.(float64))
 
-      default:
-        _ = t
+        // TODO FIXIT: for now skip if nil/nan
+        default:
+          _ = t
+      }
     }
   }
 
@@ -147,8 +155,10 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
   frame := data.NewFrame("response")
   frame.Fields = append(frame.Fields,
     data.NewField("time", nil, tss), //[]time.Time{query.TimeRange.From, query.TimeRange.To}),
-    data.NewField("values", nil, vals),
   )
+  for i := range vals {
+    frame.Fields = append(frame.Fields, data.NewField("values", nil, vals[i]))
+  }
 
   // If query called with streaming on then return a channel
   // to subscribe on a client-side and consume updates from a plugin.
