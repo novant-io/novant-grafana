@@ -9,11 +9,14 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface NvQuery extends DataQuery {
+  op: string;
   deviceId?: string;
   pointIds?: string;
 }
 
-export const defaultQuery: Partial<NvQuery> = {};
+export const defaultQuery: Partial<NvQuery> = {
+  op: 'trends',
+};
 
 /**
  * These are options configured for each DataSource instance.
