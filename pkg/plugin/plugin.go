@@ -116,6 +116,7 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
   }
 
   // map values to frame format
+  ids  := strings.Split(pointIds, ",")
   size := uint64(trends["size"].(float64))
   tss  := make([]time.Time, size)
   vals := make([]float64, size)
@@ -131,7 +132,7 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
     }
 
     // TODO: what do we do for nil/nan?
-    val := rmap["p182"]
+    val := rmap[ids[0]]
     switch t := val.(type) {
       case float64:
         tss[i]  = ts
