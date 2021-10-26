@@ -1,3 +1,11 @@
+//
+// Copyright (c) 2021, Novant LLC
+// Licensed under the MIT License
+//
+// History:
+//   21 Oct 2021  Andy Frank  Creation
+//
+
 import React, { ChangeEvent, PureComponent } from 'react';
 import { LegacyForms } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
