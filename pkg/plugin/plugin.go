@@ -86,7 +86,8 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
   if response.Error != nil {
     return response
   }
-  ts := query.TimeRange.From
+  start := toMidnight(query.TimeRange.From)
+  end   := toMidnight(query.TimeRange.To).Add(24 * time.Hour)
   deviceId := strings.TrimSpace(params["deviceId"].(string))
   pointIds := strings.TrimSpace(params["pointIds"].(string))
 
@@ -102,19 +103,6 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
     return response
   }
 
-  // query /trends for data
-  args := url.Values{
-    "device_id": {deviceId},
-    "point_ids": {pointIds},
-    "date":      {ts.Format("2006-01-02")},
-    "interval":  {"15min"}, // TODO
-  }
-  trends, err := novantReq(pCtx, "trends", args)
-  if err != nil {
-    response.Error = err
-    return response
-  }
-
   // stub out working data structures
   tss  := []time.Time{}
   vals := [][]float64{}
@@ -123,38 +111,58 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
     vals = append(vals, []float64{})
   }
 
-  // map values to frame format
-  list := trends["data"].([]interface{})
-  for i := range list {
-    row := list[i].(map[string]interface{})
-
-    // decode ts
-    ts, err := time.Parse(time.RFC3339, row["ts"].(string))
+  // iterate from time range
+  cur := start
+  for cur.Before(end) {
+    // query /trends for data
+    args := url.Values{
+      "device_id": {deviceId},
+      "point_ids": {pointIds},
+      "date":      {cur.Format("2006-01-02")},
+      "interval":  {"15min"}, // TODO
+    }
+    trends, err := novantReq(pCtx, "trends", args)
     if err != nil {
       response.Error = err
       return response
     }
-    tss = append(tss, ts)
 
-    // map trends to data frame
-    for j := range pids {
-      pid := pids[j]
-      val := row[pid]
-      switch t := val.(type) {
-        case float64:
-          vals[j] = append(vals[j], val.(float64))
+    // map values to frame format
+    list := trends["data"].([]interface{})
+    for i := range list {
+      row := list[i].(map[string]interface{})
 
-        // TODO FIXIT: for now skip if nil/nan
-        default:
-          _ = t
+      // decode ts
+      ts, err := time.Parse(time.RFC3339, row["ts"].(string))
+      if err != nil {
+        response.Error = err
+        return response
+      }
+      tss = append(tss, ts)
+
+      // map trends to data frame
+      for j := range pids {
+        pid := pids[j]
+        val := row[pid]
+        switch t := val.(type) {
+          case float64:
+            vals[j] = append(vals[j], val.(float64))
+
+          // TODO FIXIT: for now skip if nil/nan
+          default:
+            _ = t
+        }
       }
     }
+
+    // advance
+    cur = cur.Add(24 * time.Hour)
   }
 
   // create data frame response
   frame := data.NewFrame("response")
   frame.Fields = append(frame.Fields,
-    data.NewField("time", nil, tss), //[]time.Time{query.TimeRange.From, query.TimeRange.To}),
+    data.NewField("time", nil, tss),
   )
   for i := range vals {
     frame.Fields = append(frame.Fields, data.NewField("values", nil, vals[i]))

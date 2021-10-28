@@ -15,6 +15,7 @@ import (
   "net/http"
   "net/url"
   "strings"
+  "time"
   "github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
@@ -55,4 +56,9 @@ func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string
   }
 
   return resMap, nil
+}
+
+func toMidnight(t time.Time) time.Time {
+  y,m,d := t.Date()
+  return time.Date(y, m, d, 0, 0, 0, 0, t.Location())
 }
