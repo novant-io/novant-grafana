@@ -12,6 +12,7 @@ import (
   "context"
   "encoding/json"
   "errors"
+  "math"
   "net/url"
   "strings"
   "time"
@@ -148,9 +149,11 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
           case float64:
             vals[j] = append(vals[j], val.(float64))
 
-          // TODO FIXIT: for now skip if nil/nan
+          // TODO FIXIT: using nan for 'null' is not the same thing; but
+          // does this have the right effect for now?
           default:
             _ = t
+            vals[j] = append(vals[j], math.NaN())
         }
       }
     }
