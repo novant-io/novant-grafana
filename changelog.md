@@ -1,6 +1,9 @@
 # Changelog
 
-## Version 0.2 (working)
+## Version 0.3 (working)
+* Fix handling of `null` or `nan` trend values
+
+## Version 0.2 (28-Oct-2021)
 * Support queries with multiple point values
 * Support queries over multiple days
 
