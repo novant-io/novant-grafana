@@ -1,6 +1,6 @@
 {
   "name": "novant-datasource",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Novant API data source",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
