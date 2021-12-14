@@ -15,11 +15,10 @@ import (
   "net/http"
   "net/url"
   "strings"
-  "time"
   "github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
-func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string]interface{}, error) {
+func novantReq(cx backend.PluginContext, op string, args url.Values) (Map, error) {
   apiKey := cx.DataSourceInstanceSettings.DecryptedSecureJSONData["apiKey"]
   client := &http.Client{}
   reader := strings.NewReader(args.Encode())
@@ -44,7 +43,7 @@ func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string
   }
 
   // decode json
-  resMap := map[string]interface{}{}
+  resMap := Map{}
   err = json.Unmarshal([]byte(resBytes), &resMap)
   if err != nil {
     return nil, err
@@ -56,9 +55,4 @@ func novantReq(cx backend.PluginContext, op string, args url.Values) (map[string
   }
 
   return resMap, nil
-}
-
-func toMidnight(t time.Time) time.Time {
-  y,m,d := t.Date()
-  return time.Date(y, m, d, 0, 0, 0, 0, t.Location())
 }

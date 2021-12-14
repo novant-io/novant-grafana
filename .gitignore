@@ -31,5 +31,6 @@ e2e-results/
 
 .DS_Store
 setenv.sh
+buildgo.sh
 builddist.sh
 notes.md

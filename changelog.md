@@ -1,6 +1,7 @@
 # Changelog
 
 ## Version 0.3 (working)
+* New support for mapping raw point ids to display names
 * Fix handling of `null` or `nan` trend values
 
 ## Version 0.2 (28-Oct-2021)

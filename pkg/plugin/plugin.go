@@ -112,6 +112,21 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
     vals = append(vals, []float64{})
   }
 
+  // request /points to get point meta
+  pointsReq, err := novantReq(pCtx, "points", url.Values{ "device_id": {deviceId}})
+  if err != nil {
+    log.DefaultLogger.Error("/points request failed", "error", err)
+    response.Error = err
+    return response
+  }
+  pnames := []string{}
+  points := filterPointMeta(pointsReq, pids)
+  for i := range pids {
+    id := pids[i]
+    p  := points[id].(Map)
+    pnames = append(pnames, p["name"].(string))
+  }
+
   // iterate from time range
   cur := start
   for cur.Before(end) {
@@ -124,6 +139,7 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
     }
     trends, err := novantReq(pCtx, "trends", args)
     if err != nil {
+      log.DefaultLogger.Error("/trends request failed", "error", err)
       response.Error = err
       return response
     }
@@ -168,7 +184,7 @@ func (d *NvDatasource) query(_ context.Context, pCtx backend.PluginContext, quer
     data.NewField("time", nil, tss),
   )
   for i := range vals {
-    frame.Fields = append(frame.Fields, data.NewField("values", nil, vals[i]))
+    frame.Fields = append(frame.Fields, data.NewField(pnames[i], nil, vals[i]))
   }
 
   // If query called with streaming on then return a channel
