@@ -45,4 +45,4 @@ In your dashboard:
 
 The visualization should automatically update when changes are made.  The
 `point_ids` is a comma-separated list of points to display, ie:
-`"s.1.1, s.1.2, s.1.3"`.
+`"s.1.1,s.1.2,s.1.3"`.

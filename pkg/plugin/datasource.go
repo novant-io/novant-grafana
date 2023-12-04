@@ -11,12 +11,16 @@ package plugin
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+  "errors"
+  "math"
 	"math/rand"
-	"time"
+  "net/url"
+  "strings"
+  "time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 )
 
@@ -72,27 +76,129 @@ type queryModel struct{}
 func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	var response backend.DataResponse
 
-	// Unmarshal the JSON into our queryModel.
-	var qm queryModel
+  // unmarshal the JSON params
+  params := map[string]interface{}{}
+  response.Error = json.Unmarshal(query.JSON, &params)
+  if response.Error != nil {
+    return response
+  }
+  start := toMidnight(query.TimeRange.From)
+  end   := toMidnight(query.TimeRange.To).Add(24 * time.Hour)
+  sourceId := strings.TrimSpace(params["sourceId"].(string))
+  pointIds := strings.TrimSpace(params["pointIds"].(string))
 
-	err := json.Unmarshal(query.JSON, &qm)
-	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
-	}
+  // validate
+  if sourceId == "" {
+    response.Error = errors.New("Missing sourceId value")
+    return response
+  }
 
-	// create data frame response.
-	// For an overview on data frames and how grafana handles them:
-	// https://grafana.com/developers/plugin-tools/introduction/data-frames
-	frame := data.NewFrame("response")
+  // validate
+  if pointIds == "" {
+    response.Error = errors.New("Missing pointIds value")
+    return response
+  }
 
-	// add fields.
-	frame.Fields = append(frame.Fields,
-		data.NewField("time", nil, []time.Time{query.TimeRange.From, query.TimeRange.To}),
-		data.NewField("values", nil, []int64{10, 20}),
-	)
+  // stub out working data structures
+  tss  := []time.Time{}
+  vals := [][]float64{}
+  pids := strings.Split(pointIds, ",")
+  for _ = range pids {
+    vals = append(vals, []float64{})
+  }
 
-	// add the frames to the response.
-	response.Frames = append(response.Frames, frame)
+  // request /points to get point meta
+  pointsReq, err := novantReq(pCtx, "points", url.Values{ "source_id": {sourceId}})
+  if err != nil {
+    log.DefaultLogger.Error("/points request failed", "error", err)
+    response.Error = err
+    return response
+  }
+  pnames := []string{}
+  points := filterPointMeta(pointsReq, pids)
+  for i := range pids {
+    id := pids[i]
+    p  := points[id].(Map)
+    pnames = append(pnames, p["name"].(string))
+  }
+
+  // iterate from time range
+  cur := start
+  for cur.Before(end) {
+    // query /trends for data
+    args := url.Values{
+      "source_id": {sourceId},
+      "point_ids": {pointIds},
+      "date":      {cur.Format("2006-01-02")},
+      "interval":  {"15min"}, // TODO
+    }
+    trends, err := novantReq(pCtx, "trends", args)
+    if err != nil {
+      log.DefaultLogger.Error("/trends request failed", "error", err)
+      response.Error = err
+      return response
+    }
+
+    // map values to frame format
+    list := trends["trends"].([]interface{})
+    for i := range list {
+      row := list[i].(map[string]interface{})
+
+      // decode ts
+      ts, err := time.Parse(time.RFC3339, row["ts"].(string))
+      if err != nil {
+        response.Error = err
+        return response
+      }
+      tss = append(tss, ts)
+
+      // map trends to data frame
+      for j := range pids {
+        pid := pids[j]
+        val := row[pid]
+        switch t := val.(type) {
+          case float64:
+            vals[j] = append(vals[j], val.(float64))
+
+          // TODO FIXIT: using nan for 'null' is not the same thing; but
+          // does this have the right effect for now?
+          default:
+            _ = t
+            vals[j] = append(vals[j], math.NaN())
+        }
+      }
+    }
+
+    // advance
+    cur = cur.Add(24 * time.Hour)
+  }
+
+  // create data frame response
+  frame := data.NewFrame("response")
+  frame.Fields = append(frame.Fields,
+    data.NewField("time", nil, tss),
+  )
+  for i := range vals {
+    frame.Fields = append(frame.Fields, data.NewField(pnames[i], nil, vals[i]))
+  }
+
+  // If query called with streaming on then return a channel
+  // to subscribe on a client-side and consume updates from a plugin.
+  // Feel free to remove this if you don't need streaming for your datasource.
+  /*
+  if qm.WithStreaming {
+    channel := live.Channel{
+      Scope:     live.ScopeDatasource,
+      Namespace: pCtx.DataSourceInstanceSettings.UID,
+      Path:      "stream",
+    }
+    frame.SetMeta(&data.FrameMeta{Channel: channel.String()})
+  }
+  */
+
+  // add the frames to the response
+  response.Frames = append(response.Frames, frame)
+  return response
 
 	return response
 }
