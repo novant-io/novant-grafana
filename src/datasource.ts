@@ -9,10 +9,10 @@
 import { DataSourceInstanceSettings, CoreApp } from '@grafana/data';
 import { DataSourceWithBackend } from '@grafana/runtime';
 
-import { MyQuery, MyDataSourceOptions, DEFAULT_QUERY } from './types';
+import { MyQuery, NvDataSourceOptions, DEFAULT_QUERY } from './types';
 
-export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptions> {
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+export class DataSource extends DataSourceWithBackend<MyQuery, NvDataSourceOptions> {
+  constructor(instanceSettings: DataSourceInstanceSettings<NvDataSourceOptions>) {
     super(instanceSettings);
   }
 

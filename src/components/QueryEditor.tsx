@@ -1,10 +1,18 @@
+//
+// Copyright (c) 2023, Novant LLC
+// Licensed under the MIT License
+//
+// History:
+//   4 Dec 2023  Andy Frank  Creation
+//
+
 import React, { ChangeEvent } from 'react';
 import { InlineField, Input } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
-import { MyDataSourceOptions, MyQuery } from '../types';
+import { NvDataSourceOptions, MyQuery } from '../types';
 
-type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
+type Props = QueryEditorProps<DataSource, MyQuery, NvDataSourceOptions>;
 
 export function QueryEditor({ query, onChange, onRunQuery }: Props) {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
