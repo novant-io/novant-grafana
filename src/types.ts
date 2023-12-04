@@ -1,3 +1,11 @@
+//
+// Copyright (c) 2023, Novant LLC
+// Licensed under the MIT License
+//
+// History:
+//   4 Dec 2023  Andy Frank  Creation
+//
+
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface MyQuery extends DataQuery {

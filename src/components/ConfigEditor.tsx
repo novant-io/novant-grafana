@@ -1,3 +1,11 @@
+//
+// Copyright (c) 2023, Novant LLC
+// Licensed under the MIT License
+//
+// History:
+//   4 Dec 2023  Andy Frank  Creation
+//
+
 import React, { ChangeEvent } from 'react';
 import { InlineField, Input, SecretInput } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
