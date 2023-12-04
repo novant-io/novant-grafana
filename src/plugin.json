@@ -7,7 +7,7 @@
   "backend": true,
   "executable": "gpx_novant_datasource",
   "info": {
-    "description": "Novant api data source",
+    "description": "Novant API data source",
     "author": {
       "name": "Novant"
     },
