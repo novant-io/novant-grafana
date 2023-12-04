@@ -1,17 +1,9 @@
-//
-// Copyright (c) 2021, Novant LLC
-// Licensed under the MIT License
-//
-// History:
-//   21 Oct 2021  Andy Frank  Creation
-//
-
 import { DataSourcePlugin } from '@grafana/data';
 import { DataSource } from './datasource';
-import { ConfigEditor } from './ConfigEditor';
-import { QueryEditor } from './QueryEditor';
-import { NvQuery, NvDataSourceOptions } from './types';
+import { ConfigEditor } from './components/ConfigEditor';
+import { QueryEditor } from './components/QueryEditor';
+import { MyQuery, MyDataSourceOptions } from './types';
 
-export const plugin = new DataSourcePlugin<DataSource, NvQuery, NvDataSourceOptions>(DataSource)
+export const plugin = new DataSourcePlugin<DataSource, MyQuery, MyDataSourceOptions>(DataSource)
   .setConfigEditor(ConfigEditor)
   .setQueryEditor(QueryEditor);

@@ -1,31 +1,24 @@
-//
-// Copyright (c) 2021, Novant LLC
-// Licensed under the MIT License
-//
-// History:
-//   21 Oct 2021  Andy Frank  Creation
-//
-
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
-export interface NvQuery extends DataQuery {
-  op: string;
-  deviceId?: string;
-  pointIds?: string;
+export interface MyQuery extends DataQuery {
+  queryText?: string;
+  constant: number;
 }
 
-export const defaultQuery: Partial<NvQuery> = {
-  op: 'trends',
+export const DEFAULT_QUERY: Partial<MyQuery> = {
+  constant: 6.5,
 };
 
 /**
- * These are options configured for each DataSource instance.
+ * These are options configured for each DataSource instance
  */
-export interface NvDataSourceOptions extends DataSourceJsonData {}
+export interface MyDataSourceOptions extends DataSourceJsonData {
+  path?: string;
+}
 
 /**
- * Backend only secrets.
+ * Value that is used in the backend, but never sent over HTTP to the frontend
  */
-export interface NvSecrets {
+export interface MySecureJsonData {
   apiKey?: string;
 }

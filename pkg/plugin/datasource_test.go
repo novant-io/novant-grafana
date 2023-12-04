@@ -1,24 +1,14 @@
-//
-// Copyright (c) 2021, Novant LLC
-// Licensed under the MIT License
-//
-// History:
-//   21 Oct 2021  Andy Frank  Creation
-//
-
-package plugin_test
+package plugin
 
 import (
 	"context"
 	"testing"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-starter-datasource-backend/pkg/plugin"
 )
 
-// This is where the tests for the datasource backend live.
 func TestQueryData(t *testing.T) {
-	ds := plugin.NvDatasource{}
+	ds := Datasource{}
 
 	resp, err := ds.QueryData(
 		context.Background(),
