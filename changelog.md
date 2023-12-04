@@ -1,5 +1,7 @@
 # Changelog
 
+## Version 0.5 (working)
+
 ## Version 0.4 (4-Dec-2023)
 * Brand new plugin compatible with Apollo
 
