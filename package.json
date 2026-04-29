@@ -1,6 +1,6 @@
 {
   "name": "novant-datasource",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Novant data source plugin for Grafana",
   "private": true,
   "scripts": {
