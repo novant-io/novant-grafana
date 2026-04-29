@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 const apiBaseURL = "https://api.novant.io"
@@ -26,23 +25,20 @@ func NewClient(apiKey string) *Client {
 	}
 }
 
-// post performs a POST request with form-encoded body and returns the decoded response.
-func (c *Client) post(path string, params url.Values, result interface{}) error {
-	var body io.Reader
-	if params != nil {
-		body = strings.NewReader(params.Encode())
+// get performs a GET request with the params encoded as a query string and returns the decoded response.
+func (c *Client) get(path string, params url.Values, result interface{}) error {
+	url := apiBaseURL + path
+	if params != nil && len(params) > 0 {
+		url += "?" + params.Encode()
 	}
 
-	req, err := http.NewRequest("POST", apiBaseURL+path, body)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
 
 	req.SetBasicAuth(c.apiKey, "")
 	req.Header.Set("Accept-Encoding", "gzip")
-	if params != nil {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -74,7 +70,7 @@ func (c *Client) post(path string, params url.Values, result interface{}) error 
 
 func (c *Client) GetProject() (*ProjectResp, error) {
 	var resp ProjectResp
-	if err := c.post("/v1/project", nil, &resp); err != nil {
+	if err := c.get("/v1/project", nil, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -86,7 +82,7 @@ func (c *Client) GetZones(zoneIDs string) (*ZonesResp, error) {
 		params.Set("zone_ids", zoneIDs)
 	}
 	var resp ZonesResp
-	if err := c.post("/v1/zones", params, &resp); err != nil {
+	if err := c.get("/v1/zones", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -98,7 +94,7 @@ func (c *Client) GetSpaces(spaceIDs string) (*SpacesResp, error) {
 		params.Set("space_ids", spaceIDs)
 	}
 	var resp SpacesResp
-	if err := c.post("/v1/spaces", params, &resp); err != nil {
+	if err := c.get("/v1/spaces", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -110,7 +106,7 @@ func (c *Client) GetAssets(assetIDs string) (*AssetsResp, error) {
 		params.Set("asset_ids", assetIDs)
 	}
 	var resp AssetsResp
-	if err := c.post("/v1/assets", params, &resp); err != nil {
+	if err := c.get("/v1/assets", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -125,7 +121,7 @@ func (c *Client) GetSources(sourceIDs string, boundOnly bool) (*SourcesResp, err
 		params.Set("bound_only", "true")
 	}
 	var resp SourcesResp
-	if err := c.post("/v1/sources", params, &resp); err != nil {
+	if err := c.get("/v1/sources", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -144,7 +140,7 @@ func (c *Client) GetPoints(sourceID, assetID, spaceID, pointIDs string) (*Points
 		params.Set("point_ids", pointIDs)
 	}
 	var resp PointsResp
-	if err := c.post("/v1/points", params, &resp); err != nil {
+	if err := c.get("/v1/points", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -163,7 +159,7 @@ func (c *Client) GetValues(sourceID, assetID, spaceID, pointIDs string) (*Values
 		params.Set("point_ids", pointIDs)
 	}
 	var resp ValuesResp
-	if err := c.post("/v1/values", params, &resp); err != nil {
+	if err := c.get("/v1/values", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -184,7 +180,7 @@ func (c *Client) GetTrends(pointIDs, startDate, endDate, interval, aggregate str
 	// The trends response has dynamic keys per point ID in each trend row,
 	// so we decode to a raw structure first.
 	var raw json.RawMessage
-	if err := c.post("/v1/trends", params, &raw); err != nil {
+	if err := c.get("/v1/trends", params, &raw); err != nil {
 		return nil, err
 	}
 

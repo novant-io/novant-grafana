@@ -188,7 +188,7 @@ Grafana's catalog.
 The frontend (`DataSourceWithBackend`) forwards every query to the Go backend,
 which calls the Novant REST API at `https://api.novant.io`:
 
-- All requests are `POST` with `application/x-www-form-urlencoded` bodies
+- All requests are `GET` with params encoded as a query string
 - HTTP Basic Auth — API key as username, empty password
 - Responses are gzip-decoded and converted to Grafana
   [data frames](https://grafana.com/developers/plugin-tools/key-concepts/data-frames)
