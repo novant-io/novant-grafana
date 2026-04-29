@@ -1,37 +1,12 @@
 # Novant Data Source for Grafana
 
-A Grafana data source plugin for [Novant](https://novant.io) — visualize zones,
-spaces, assets, sources, and point data from your building automation systems
+A Grafana data source plugin for [Novant](https://novant.io) — visualize zones, 
+spaces, assets, sources, and point data from your building automation systems 
 directly inside Grafana dashboards.
 
 - **Plugin ID:** `novant-datasource`
 - **Type:** Data source (with backend)
 - **License:** MIT
-
-## Features
-
-- Query historical time series ("trends") for any Novant point with selectable
-  intervals and aggregations
-- Query live current values for points
-- Browse Novant entity metadata as Grafana tables: zones, spaces, assets,
-  sources, and points
-- Grafana template variable support across all entity/point ID fields
-- Alerting compatible (`alerting: true`)
-
-## Query Types
-
-| Type        | Returns                          | Required fields           |
-| ----------- | -------------------------------- | ------------------------- |
-| `trends`    | Time series of point values      | `Point IDs`               |
-| `values`    | Current point values (table)     | `Source ID`, `Asset ID`, or `Space ID` |
-| `points`    | Point metadata (table)           | `Source ID`, `Asset ID`, or `Space ID` |
-| `sources`   | Source devices (table)           | — (optional `Source IDs`) |
-| `assets`    | Equipment / assets (table)       | — (optional `Asset IDs`)  |
-| `spaces`    | Building spaces (table)          | — (optional `Space IDs`)  |
-| `zones`     | Building zones (table)           | — (optional `Zone IDs`)   |
-
-For `trends`, the dashboard time range is sent as `start_date` / `end_date` to
-the Novant API. `interval` and `aggregate` default to `auto`.
 
 ## Prerequisites
 
@@ -39,26 +14,76 @@ the Novant API. `interval` and `aggregate` default to `auto`.
 - A Novant account and API key (starts with `ak_`) — sign up at
   [novant.io](https://novant.io)
 
-## Installing
+## Quickstart with Docker
 
-The plugin is not yet listed in the Grafana plugin catalog. For now, install
-the latest release `.zip` from this repo's
-[Releases page](https://github.com/novant-io/novant-grafana/releases):
+The fastest path: copy this into a `docker-compose.yml` and run
+`docker compose up`. It pulls Grafana, auto-installs the plugin from the
+GitHub release, pre-adds the Novant data source, and persists state in a
+named volume.
+
+```yaml
+services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_INSTALL_PLUGINS=https://github.com/novant-io/novant-grafana/releases/download/v1.0.0/novant-datasource-1.0.0.zip;novant-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=novant-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+    configs:
+      - source: novant_datasource
+        target: /etc/grafana/provisioning/datasources/novant.yaml
+
+configs:
+  novant_datasource:
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Novant
+          uid: novant
+          type: novant-datasource
+          access: proxy
+          editable: true
+
+volumes:
+  grafana-data:
+```
+
+Then:
+
+1. Open <http://localhost:3000> (login: `admin` / `admin`).
+2. **Connections → Data sources → Novant** (already pre-added).
+3. Paste your Novant **API key** (`ak_...`) and click **Save & test** —
+   should show `Connected to <your project>`.
+4. **Dashboards → New** to start building.
+
+State (dashboards, API key) persists across restarts in the `grafana-data`
+volume. To wipe and start fresh: `docker compose down -v`.
+
+> Update the version in the `GF_INSTALL_PLUGINS` URL to install a different
+> release.
+
+## Manual install (existing Grafana)
+
+Download the `.zip` from this repo's
+[Releases page](https://github.com/novant-io/novant-grafana/releases)
+and unpack it:
 
 ```bash
-# Download the .zip from a release, then:
 unzip novant-datasource-<version>.zip -d /var/lib/grafana/plugins/
 ```
 
-Or via `grafana-cli` with the release URL:
+Or use `grafana-cli`:
 
 ```bash
 grafana-cli --pluginUrl https://github.com/novant-io/novant-grafana/releases/download/v<version>/novant-datasource-<version>.zip \
   plugins install novant-datasource
 ```
 
-Because the plugin is unsigned, allow it to load by adding the following to
-your `grafana.ini` under `[plugins]`:
+Because the plugin is unsigned, allow it to load by adding to your
+`grafana.ini` under `[plugins]`:
 
 ```ini
 allow_loading_unsigned_plugins = novant-datasource
@@ -67,6 +92,9 @@ allow_loading_unsigned_plugins = novant-datasource
 Then restart Grafana.
 
 ## Configuring the Data Source
+
+If you used the Docker Quickstart, the data source is already pre-added —
+just paste your API key. Otherwise:
 
 1. In Grafana, go to **Connections → Data sources → Add data source** and pick
    **Novant**.
@@ -102,6 +130,31 @@ editor:
 - Query Type: `Live Values`
 - Source ID: `s.1`  *(or Asset ID: `a.1`, or Space ID: `sp.1`)*
 - Point IDs: *(optional — leave empty for all)*
+
+## Features
+
+- Query historical time series ("trends") for any Novant point with selectable
+  intervals and aggregations
+- Query live current values for points
+- Browse Novant entity metadata as Grafana tables: zones, spaces, assets,
+  sources, and points
+- Grafana template variable support across all entity/point ID fields
+- Alerting compatible (`alerting: true`)
+
+## Query Types
+
+| Type        | Returns                          | Required fields           |
+| ----------- | -------------------------------- | ------------------------- |
+| `trends`    | Time series of point values      | `Point IDs`               |
+| `values`    | Current point values (table)     | `Source ID`, `Asset ID`, or `Space ID` |
+| `points`    | Point metadata (table)           | `Source ID`, `Asset ID`, or `Space ID` |
+| `sources`   | Source devices (table)           | — (optional `Source IDs`) |
+| `assets`    | Equipment / assets (table)       | — (optional `Asset IDs`)  |
+| `spaces`    | Building spaces (table)          | — (optional `Space IDs`)  |
+| `zones`     | Building zones (table)           | — (optional `Zone IDs`)   |
+
+For `trends`, the dashboard time range is sent as `start_date` / `end_date` to
+the Novant API. `interval` and `aggregate` default to `auto`.
 
 ## Contributing
 

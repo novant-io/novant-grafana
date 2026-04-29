@@ -139,7 +139,9 @@ Releasing is a two-step flow — **package** builds the zip, **publish** ships i
 
 1. Bump `version` in `package.json` and commit (run `npm install` to update
    the lockfile too).
-2. Build the artifact:
+2. Update the version in the README's **Quickstart with Docker** snippet
+   (the `GF_INSTALL_PLUGINS` URL hardcodes the version number).
+3. Build the artifact:
    ```bash
    npm run package
    ```
