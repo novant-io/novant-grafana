@@ -111,7 +111,7 @@ The API key still gets provisioned from `.env`, so no manual reconfig needed.
 npm run build         # Production frontend build
 npm run build:backend # Backend plugin binary (mage -v)
 npm run build:all     # Frontend + backend
-npm run package       # Build + zip a release artifact (novant-datasource-<ver>.zip)
+npm run package       # Build + zip a release artifact into rel/
 npm run dev           # Watch frontend
 npm run typecheck     # tsc --noEmit
 npm run lint          # ESLint
@@ -140,7 +140,8 @@ cut one:
    npm run package
    ```
    This runs `build:all`, stages `dist/` into a properly-named `novant-datasource/`
-   directory, and zips it as `novant-datasource-<version>.zip` in the repo root.
+   directory, and zips it as `rel/novant-datasource-<version>.zip`. The `rel/`
+   directory is gitignored.
 3. Tag and push:
    ```bash
    git tag v$(node -p "require('./package.json').version")
@@ -148,7 +149,7 @@ cut one:
    ```
 4. Create the GitHub Release and attach the zip:
    ```bash
-   gh release create v1.0.0 novant-datasource-1.0.0.zip \
+   gh release create v1.0.0 rel/novant-datasource-1.0.0.zip \
      --title "v1.0.0" --notes "Initial release"
    ```
 

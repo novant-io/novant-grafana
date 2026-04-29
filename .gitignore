@@ -7,7 +7,7 @@ dist/
 node_modules/
 
 # Release artifacts
-*.zip
+rel/
 .package/
 
 # Tooling caches
