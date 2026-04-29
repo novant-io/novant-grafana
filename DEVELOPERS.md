@@ -34,7 +34,7 @@ The build output lands in `dist/`, which is what Grafana loads as the plugin.
 
 ## Running Locally
 
-A `docker-compose.yml` runs Grafana with this plugin mounted from `dist/` and
+A `docker-compose.yaml` runs Grafana with this plugin mounted from `dist/` and
 unsigned plugin loading enabled. Before the first run, set up your **`.env`**
 file with your Novant API key:
 
@@ -98,7 +98,7 @@ The API key still gets provisioned from `.env`, so no manual reconfig needed.
 │       ├── ConfigEditor.tsx  API key configuration UI
 │       └── QueryEditor.tsx   Query builder UI
 ├── provisioning/         Grafana provisioning for the dev container
-├── docker-compose.yml    Local dev Grafana + plugin mount
+├── docker-compose.yaml   Local dev Grafana + plugin mount
 ├── Magefile.go           Go build entry point
 ├── go.mod                Go module: github.com/novant-io/novant-grafana
 ├── package.json          Frontend build / lint / test scripts

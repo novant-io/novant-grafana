@@ -16,7 +16,7 @@ directly inside Grafana dashboards.
 
 ## Quickstart with Docker
 
-The fastest path: copy this into a `docker-compose.yml` and run
+The fastest path: copy this into a `docker-compose.yaml` and run
 `docker compose up`. It pulls Grafana, auto-installs the plugin from the
 GitHub release, pre-adds the Novant data source, and persists state in a
 named volume.

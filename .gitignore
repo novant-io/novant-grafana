@@ -1,6 +1,7 @@
 # Local environment
 .env
 .claude/
+/temp/
 
 # Build output
 dist/
