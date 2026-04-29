@@ -112,6 +112,7 @@ npm run build         # Production frontend build
 npm run build:backend # Backend plugin binary (mage -v)
 npm run build:all     # Frontend + backend
 npm run package       # Build + zip a release artifact into rel/
+npm run publish       # Push an existing zip to a GitHub Release (does NOT build)
 npm run dev           # Watch frontend
 npm run typecheck     # tsc --noEmit
 npm run lint          # ESLint
@@ -131,27 +132,52 @@ GOTOOLCHAIN=local go build ./pkg/...    # quick compile check, no plugin binary
 
 ## Cutting a Release
 
-End users install the plugin from a `.zip` attached to a GitHub Release. To
-cut one:
+End users install the plugin from a `.zip` attached to a GitHub Release.
+Releasing is a two-step flow — **package** builds the zip, **publish** ships it.
 
-1. Bump `version` in `package.json` (and run `npm install` to update the lockfile).
-2. Build and package:
+### Step 1 — Build the zip
+
+1. Bump `version` in `package.json` and commit (run `npm install` to update
+   the lockfile too).
+2. Build the artifact:
    ```bash
    npm run package
    ```
-   This runs `build:all`, stages `dist/` into a properly-named `novant-datasource/`
-   directory, and zips it as `rel/novant-datasource-<version>.zip`. The `rel/`
+   This runs the prepackage gates (typecheck, lint, tests), builds the
+   plugin, and writes `rel/novant-datasource-<version>.zip`. The `rel/`
    directory is gitignored.
-3. Tag and push:
-   ```bash
-   git tag v$(node -p "require('./package.json').version")
-   git push --tags
-   ```
-4. Create the GitHub Release and attach the zip:
-   ```bash
-   gh release create v1.0.0 rel/novant-datasource-1.0.0.zip \
-     --title "v1.0.0" --notes "Initial release"
-   ```
+
+You can run `npm run package` repeatedly across version bumps without
+shipping anything — zips just accumulate in `rel/`.
+
+### Step 2 — Push to GitHub
+
+```bash
+npm run publish
+```
+
+This **does not build**. It scans `rel/` for zips, checks `gh release list`
+to see which versions are already published, prints the inventory, then:
+
+- **Auto-picks** if exactly one zip is unpublished.
+- **Prompts you to choose** with a numbered list if multiple zips are
+  unpublished. (Or pass an explicit version: `npm run publish -- 1.2.0`.)
+- **Errors** if all zips are already published, or if the requested version
+  has already been published.
+
+Before doing anything destructive, it shows a summary (tag, asset path,
+remote) and asks `Proceed? [y/N]`. Only on `y` does it tag the current HEAD
+as `v<version>`, push the tag, and create the GitHub Release with the zip
+attached and auto-generated release notes. Refuses to run at all if the
+working tree is dirty.
+
+### Prerequisites for `npm run publish`
+
+- [`gh`](https://cli.github.com/) installed and authenticated (`gh auth login`)
+- A clean git working tree (the tag is placed on HEAD)
+- Push access to the `origin` remote
+
+### Signing
 
 The plugin is unsigned, so users must add `allow_loading_unsigned_plugins =
 novant-datasource` to their `grafana.ini` until/unless we sign it through
