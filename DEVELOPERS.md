@@ -111,6 +111,7 @@ The API key still gets provisioned from `.env`, so no manual reconfig needed.
 npm run build         # Production frontend build
 npm run build:backend # Backend plugin binary (mage -v)
 npm run build:all     # Frontend + backend
+npm run package       # Build + zip a release artifact (novant-datasource-<ver>.zip)
 npm run dev           # Watch frontend
 npm run typecheck     # tsc --noEmit
 npm run lint          # ESLint
@@ -127,6 +128,33 @@ For ad-hoc Go work:
 ```bash
 GOTOOLCHAIN=local go build ./pkg/...    # quick compile check, no plugin binary
 ```
+
+## Cutting a Release
+
+End users install the plugin from a `.zip` attached to a GitHub Release. To
+cut one:
+
+1. Bump `version` in `package.json` (and run `npm install` to update the lockfile).
+2. Build and package:
+   ```bash
+   npm run package
+   ```
+   This runs `build:all`, stages `dist/` into a properly-named `novant-datasource/`
+   directory, and zips it as `novant-datasource-<version>.zip` in the repo root.
+3. Tag and push:
+   ```bash
+   git tag v$(node -p "require('./package.json').version")
+   git push --tags
+   ```
+4. Create the GitHub Release and attach the zip:
+   ```bash
+   gh release create v1.0.0 novant-datasource-1.0.0.zip \
+     --title "v1.0.0" --notes "Initial release"
+   ```
+
+The plugin is unsigned, so users must add `allow_loading_unsigned_plugins =
+novant-datasource` to their `grafana.ini` until/unless we sign it through
+Grafana's catalog.
 
 ## How It Works
 

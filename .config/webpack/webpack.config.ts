@@ -60,7 +60,12 @@ const config = async (env: Record<string, unknown>): Promise<Configuration> => {
       new CopyWebpackPlugin({
         patterns: [
           { from: 'plugin.json', to: '.' },
-          { from: 'img', to: 'img', noErrorOnMissing: true },
+          {
+            from: 'img',
+            to: 'img',
+            noErrorOnMissing: true,
+            globOptions: { ignore: ['**/.DS_Store'] },
+          },
         ],
       }),
       new ForkTsCheckerWebpackPlugin({

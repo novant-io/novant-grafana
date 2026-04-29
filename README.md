@@ -41,15 +41,30 @@ the Novant API. `interval` and `aggregate` default to `auto`.
 
 ## Installing
 
-> **Note:** The plugin is not yet published to the Grafana plugin catalog.
-> Until it is, install it manually from a release `.zip` (or build it
-> yourself per [DEVELOPERS.md](DEVELOPERS.md)).
->
-> Once published, install will be:
->
-> ```bash
-> grafana-cli plugins install novant-datasource
-> ```
+The plugin is not yet listed in the Grafana plugin catalog. For now, install
+the latest release `.zip` from this repo's
+[Releases page](https://github.com/novant-io/novant-grafana/releases):
+
+```bash
+# Download the .zip from a release, then:
+unzip novant-datasource-<version>.zip -d /var/lib/grafana/plugins/
+```
+
+Or via `grafana-cli` with the release URL:
+
+```bash
+grafana-cli --pluginUrl https://github.com/novant-io/novant-grafana/releases/download/v<version>/novant-datasource-<version>.zip \
+  plugins install novant-datasource
+```
+
+Because the plugin is unsigned, allow it to load by adding the following to
+your `grafana.ini` under `[plugins]`:
+
+```ini
+allow_loading_unsigned_plugins = novant-datasource
+```
+
+Then restart Grafana.
 
 ## Configuring the Data Source
 
