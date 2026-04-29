@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
@@ -13,12 +14,14 @@ import (
 var (
 	_ backend.QueryDataHandler      = (*Datasource)(nil)
 	_ backend.CheckHealthHandler    = (*Datasource)(nil)
+	_ backend.CallResourceHandler   = (*Datasource)(nil)
 	_ instancemgmt.InstanceDisposer = (*Datasource)(nil)
 )
 
 // Datasource is the Novant data source plugin.
 type Datasource struct {
-	client *Client
+	client     *Client
+	pointCache *pointCache
 }
 
 // NewDatasource creates a new Novant data source instance.
@@ -28,7 +31,8 @@ func NewDatasource(_ context.Context, settings backend.DataSourceInstanceSetting
 		return nil, fmt.Errorf("API key is required")
 	}
 	return &Datasource{
-		client: NewClient(apiKey),
+		client:     NewClient(apiKey),
+		pointCache: newPointCache(),
 	}, nil
 }
 
@@ -48,6 +52,30 @@ func (d *Datasource) CheckHealth(_ context.Context, _ *backend.CheckHealthReques
 		Status:  backend.HealthStatusOk,
 		Message: fmt.Sprintf("Connected to %s (%s)", proj.ProjName, proj.City),
 	}, nil
+}
+
+// CallResource handles HTTP calls to /api/datasources/uid/<uid>/resources/<path>.
+// Used by the data source config UI to clear the in-memory point name cache.
+func (d *Datasource) CallResource(_ context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+	switch req.Path {
+	case "clear-cache":
+		if req.Method != http.MethodPost {
+			return sender.Send(&backend.CallResourceResponse{
+				Status: http.StatusMethodNotAllowed,
+				Body:   []byte(`{"error":"method not allowed"}`),
+			})
+		}
+		d.pointCache.clear()
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusOK,
+			Body:   []byte(`{"status":"ok"}`),
+		})
+	default:
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusNotFound,
+			Body:   []byte(`{"error":"not found"}`),
+		})
+	}
 }
 
 // QueryData handles multiple queries.
@@ -130,7 +158,12 @@ func (d *Datasource) queryValues(qm QueryModel) backend.DataResponse {
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusInternal, err.Error())
 	}
-	return backend.DataResponse{Frames: data.Frames{buildValuesFrame(resp)}}
+	pointIDs := make([]string, len(resp.Values))
+	for i, v := range resp.Values {
+		pointIDs[i] = v.ID
+	}
+	names := d.pointCache.resolveNames(d.client, pointIDs)
+	return backend.DataResponse{Frames: data.Frames{buildValuesFrame(resp, names)}}
 }
 
 func (d *Datasource) queryTrends(q backend.DataQuery, qm QueryModel) backend.DataResponse {
@@ -146,7 +179,9 @@ func (d *Datasource) queryTrends(q backend.DataQuery, qm QueryModel) backend.Dat
 		return backend.ErrDataResponse(backend.StatusInternal, err.Error())
 	}
 
-	frames, err := buildTrendsFrames(resp)
+	names := d.pointCache.resolveNames(d.client, resp.PointIDs)
+
+	frames, err := buildTrendsFrames(resp, names)
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusInternal, err.Error())
 	}

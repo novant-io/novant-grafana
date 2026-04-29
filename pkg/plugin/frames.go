@@ -158,14 +158,19 @@ func buildPointsFrame(resp *PointsResp) *data.Frame {
 	return frame
 }
 
-func buildValuesFrame(resp *ValuesResp) *data.Frame {
+func buildValuesFrame(resp *ValuesResp, names map[string]string) *data.Frame {
 	count := len(resp.Values)
+	nameCol := make([]string, count)
 	ids := make([]string, count)
 	vals := make([]*float64, count)
 	statuses := make([]string, count)
 
 	for i, v := range resp.Values {
 		ids[i] = v.ID
+		nameCol[i] = v.ID
+		if n, ok := names[v.ID]; ok {
+			nameCol[i] = n
+		}
 		statuses[i] = v.Status
 		switch val := v.Val.(type) {
 		case float64:
@@ -180,13 +185,14 @@ func buildValuesFrame(resp *ValuesResp) *data.Frame {
 	}
 
 	return data.NewFrame("values",
+		data.NewField("name", nil, nameCol),
 		data.NewField("id", nil, ids),
 		data.NewField("value", nil, vals),
 		data.NewField("status", nil, statuses),
 	)
 }
 
-func buildTrendsFrames(resp *TrendsResp) (data.Frames, error) {
+func buildTrendsFrames(resp *TrendsResp, names map[string]string) (data.Frames, error) {
 	if len(resp.Trends) == 0 || len(resp.PointIDs) == 0 {
 		return data.Frames{}, nil
 	}
@@ -207,7 +213,9 @@ func buildTrendsFrames(resp *TrendsResp) (data.Frames, error) {
 		timestamps[i] = t
 	}
 
-	// Build one field per point ID
+	// Build one field per point ID. Field name is the point's display name (when known)
+	// so the panel legend reads naturally; the raw point ID is preserved as a label
+	// for transforms / overrides.
 	fields := make([]*data.Field, 0, len(resp.PointIDs)+1)
 	fields = append(fields, data.NewField("time", nil, timestamps))
 
@@ -220,7 +228,11 @@ func buildTrendsFrames(resp *TrendsResp) (data.Frames, error) {
 				}
 			}
 		}
-		fields = append(fields, data.NewField(pid, nil, values))
+		name := pid
+		if n, ok := names[pid]; ok {
+			name = n
+		}
+		fields = append(fields, data.NewField(name, data.Labels{"point_id": pid}, values))
 	}
 
 	frame := data.NewFrame("trends", fields...)
