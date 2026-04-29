@@ -1,0 +1,151 @@
+{
+  "uid": "novant-overview",
+  "title": "Novant Overview",
+  "description": "Browse Novant entities on the left; plug Source/Point IDs into the variables to see Live Values and Trends on the right.",
+  "tags": ["novant"],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "graphTooltip": 0,
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "annotations": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "type": "textbox",
+        "name": "source_id",
+        "label": "Source ID",
+        "description": "Source ID for the Live Values panel (e.g. s.1). Pick one from the Sources table.",
+        "query": "",
+        "current": { "selected": false, "text": "", "value": "" },
+        "options": [],
+        "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "type": "textbox",
+        "name": "point_ids",
+        "label": "Point IDs",
+        "description": "Comma-separated point IDs for the Trends panel (e.g. s.1.1,s.1.2).",
+        "query": "",
+        "current": { "selected": false, "text": "", "value": "" },
+        "options": [],
+        "hide": 0,
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "Sources",
+      "datasource": { "type": "novant-datasource", "uid": "novant" },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 0 },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "sources",
+          "datasource": { "type": "novant-datasource", "uid": "novant" }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Assets",
+      "datasource": { "type": "novant-datasource", "uid": "novant" },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 6 },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "assets",
+          "datasource": { "type": "novant-datasource", "uid": "novant" }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Zones",
+      "datasource": { "type": "novant-datasource", "uid": "novant" },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 12 },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "zones",
+          "datasource": { "type": "novant-datasource", "uid": "novant" }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Spaces",
+      "datasource": { "type": "novant-datasource", "uid": "novant" },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 18 },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "spaces",
+          "datasource": { "type": "novant-datasource", "uid": "novant" }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Live Values — $source_id",
+      "datasource": { "type": "novant-datasource", "uid": "novant" },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 0 },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "values",
+          "sourceId": "$source_id",
+          "datasource": { "type": "novant-datasource", "uid": "novant" }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Trends — $point_ids",
+      "datasource": { "type": "novant-datasource", "uid": "novant" },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "trends",
+          "pointIds": "$point_ids",
+          "interval": "auto",
+          "aggregate": "auto",
+          "datasource": { "type": "novant-datasource", "uid": "novant" }
+        }
+      ]
+    }
+  ]
+}

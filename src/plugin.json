@@ -1,0 +1,26 @@
+{
+  "type": "datasource",
+  "name": "Novant",
+  "id": "novant-datasource",
+  "backend": true,
+  "executable": "gpx_novant_datasource",
+  "alerting": true,
+  "info": {
+    "description": "Novant data source for Grafana - visualize zones, spaces, assets, sources, and point data",
+    "author": {
+      "name": "Novant",
+      "url": "https://novant.io"
+    },
+    "keywords": ["novant", "iot", "building", "automation", "bacnet"],
+    "version": "%VERSION%",
+    "updated": "%TODAY%",
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    }
+  },
+  "dependencies": {
+    "grafanaDependency": ">=10.0.0",
+    "plugins": []
+  }
+}

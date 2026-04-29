@@ -1,0 +1,25 @@
+# Local environment
+.env
+.claude/
+
+# Build output
+dist/
+node_modules/
+
+# Tooling caches
+.eslintcache
+*.tsbuildinfo
+
+# OS
+.DS_Store
+
+# Editor
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test/coverage
+coverage/

@@ -1,0 +1,11 @@
+apiVersion: 1
+
+datasources:
+  - name: Novant
+    uid: novant
+    type: novant-datasource
+    access: proxy
+    isDefault: false
+    editable: true
+    secureJsonData:
+      apiKey: $NOVANT_API_KEY
