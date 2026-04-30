@@ -60,9 +60,9 @@ export function ConfigEditor({ options, onOptionsChange }: Props) {
         />
       </InlineField>
       <InlineField
-        label="Point name cache"
+        label="Cache"
         labelWidth={20}
-        tooltip="Point names are cached per source for 24 hours to reduce API calls. Click to clear and force a refresh on the next query. Only takes effect after the data source has been saved."
+        tooltip="The plugin caches point name metadata (24h) and live value responses (30s) to reduce API calls. Click to clear all cached data and force a refresh on the next query. Only takes effect after the data source has been saved."
       >
         <Button
           variant="secondary"

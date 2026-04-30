@@ -12,6 +12,12 @@ import (
 // the data source config UI.
 const pointCacheTTL = 24 * time.Hour
 
+// valueCacheTTL is how long a /v1/values response is considered fresh.
+// The Novant API publishes new values every ~30 seconds, so caching for
+// 30s gives near-zero staleness while collapsing redundant fetches from
+// dashboards that auto-refresh more aggressively.
+const valueCacheTTL = 30 * time.Second
+
 type sourceEntry struct {
 	fetched time.Time
 	points  map[string]Point // pointID -> Point
@@ -72,6 +78,55 @@ func (c *pointCache) clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.sources = make(map[string]*sourceEntry)
+}
+
+// valuesEntry is a single cached /v1/values response.
+type valuesEntry struct {
+	fetched time.Time
+	resp    *ValuesResp
+}
+
+// valueCache caches /v1/values responses keyed by the query parameters.
+// TTL aligns with the Novant API's value publish cadence (~30s).
+type valueCache struct {
+	mu      sync.RWMutex
+	entries map[string]*valuesEntry
+}
+
+func newValueCache() *valueCache {
+	return &valueCache{entries: make(map[string]*valuesEntry)}
+}
+
+func valueCacheKey(sourceID, assetID, spaceID, pointIDs, pointTypes string) string {
+	return strings.Join([]string{sourceID, assetID, spaceID, pointIDs, pointTypes}, "|")
+}
+
+// getOrFetch returns the cached response if fresh, otherwise calls fetch and
+// stores the result. Errors from fetch are returned without caching.
+func (c *valueCache) getOrFetch(key string, fetch func() (*ValuesResp, error)) (*ValuesResp, error) {
+	c.mu.RLock()
+	entry, ok := c.entries[key]
+	c.mu.RUnlock()
+	if ok && time.Since(entry.fetched) < valueCacheTTL {
+		return entry.resp, nil
+	}
+
+	resp, err := fetch()
+	if err != nil {
+		return nil, err
+	}
+
+	c.mu.Lock()
+	c.entries[key] = &valuesEntry{fetched: time.Now(), resp: resp}
+	c.mu.Unlock()
+	return resp, nil
+}
+
+// clear removes all cached entries.
+func (c *valueCache) clear() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.entries = make(map[string]*valuesEntry)
 }
 
 // resolveNames returns a map of pointID → display name for the given point IDs.

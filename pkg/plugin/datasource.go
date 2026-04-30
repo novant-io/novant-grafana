@@ -22,6 +22,7 @@ var (
 type Datasource struct {
 	client     *Client
 	pointCache *pointCache
+	valueCache *valueCache
 }
 
 // NewDatasource creates a new Novant data source instance.
@@ -33,6 +34,7 @@ func NewDatasource(_ context.Context, settings backend.DataSourceInstanceSetting
 	return &Datasource{
 		client:     NewClient(apiKey),
 		pointCache: newPointCache(),
+		valueCache: newValueCache(),
 	}, nil
 }
 
@@ -66,6 +68,7 @@ func (d *Datasource) CallResource(_ context.Context, req *backend.CallResourceRe
 			})
 		}
 		d.pointCache.clear()
+		d.valueCache.clear()
 		return sender.Send(&backend.CallResourceResponse{
 			Status: http.StatusOK,
 			Body:   []byte(`{"status":"ok"}`),
@@ -154,7 +157,10 @@ func (d *Datasource) queryPoints(qm QueryModel) backend.DataResponse {
 }
 
 func (d *Datasource) queryValues(qm QueryModel) backend.DataResponse {
-	resp, err := d.client.GetValues(qm.SourceID, qm.AssetID, qm.SpaceID, qm.PointIDs, qm.PointTypes)
+	key := valueCacheKey(qm.SourceID, qm.AssetID, qm.SpaceID, qm.PointIDs, qm.PointTypes)
+	resp, err := d.valueCache.getOrFetch(key, func() (*ValuesResp, error) {
+		return d.client.GetValues(qm.SourceID, qm.AssetID, qm.SpaceID, qm.PointIDs, qm.PointTypes)
+	})
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusInternal, err.Error())
 	}

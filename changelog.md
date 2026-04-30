@@ -1,9 +1,12 @@
 # Changelog
 
-## Version 1.2.0 (working)
+## Version 1.2.0 (30-Apr-2026)
 * Add `Point Types` filter for `points` and `values` queries — comma-separated
   point-type allowlist (e.g. `zone_air_temp_sensor,discharge_air_temp_sensor`),
   passed through to the `point_types` API parameter. Supports template variables.
+* Cache `/v1/values` responses for 30 seconds (matching the Novant value
+  publish cadence). Aggressive dashboard refresh intervals no longer flood
+  the API with redundant calls. Cleared by the existing "Clear cache" button.
 * Fix decoding of 4xx API errors. The Novant API gzip-compresses error
   responses; the client now decompresses on the error path so users see the
   actual error message instead of a grpc UTF-8 marshaling failure.
