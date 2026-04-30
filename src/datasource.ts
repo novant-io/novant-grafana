@@ -16,6 +16,7 @@ export class DataSource extends DataSourceWithBackend<NovantQuery, NovantDataSou
     return {
       ...query,
       pointIds: query.pointIds ? templateSrv.replace(query.pointIds, scopedVars) : query.pointIds,
+      pointTypes: query.pointTypes ? templateSrv.replace(query.pointTypes, scopedVars) : query.pointTypes,
       sourceId: query.sourceId ? templateSrv.replace(query.sourceId, scopedVars) : query.sourceId,
       assetId: query.assetId ? templateSrv.replace(query.assetId, scopedVars) : query.assetId,
       spaceId: query.spaceId ? templateSrv.replace(query.spaceId, scopedVars) : query.spaceId,

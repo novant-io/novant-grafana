@@ -166,6 +166,19 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
               />
             </InlineField>
           )}
+          <InlineField
+            label="Point Types"
+            labelWidth={14}
+            tooltip="Comma-separated point types to allowlist (optional). e.g. zone_air_temp_sensor,discharge_air_temp_sensor"
+          >
+            <Input
+              value={query.pointTypes || ''}
+              onChange={onFieldChange('pointTypes')}
+              onBlur={onFieldBlur}
+              placeholder="zone_air_temp_sensor,discharge_air_temp_sensor"
+              width={40}
+            />
+          </InlineField>
         </>
       )}
 

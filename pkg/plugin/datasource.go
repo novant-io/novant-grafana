@@ -146,7 +146,7 @@ func (d *Datasource) querySources(qm QueryModel) backend.DataResponse {
 }
 
 func (d *Datasource) queryPoints(qm QueryModel) backend.DataResponse {
-	resp, err := d.client.GetPoints(qm.SourceID, qm.AssetID, qm.SpaceID, qm.PointIDs)
+	resp, err := d.client.GetPoints(qm.SourceID, qm.AssetID, qm.SpaceID, qm.PointIDs, qm.PointTypes)
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusInternal, err.Error())
 	}
@@ -154,7 +154,7 @@ func (d *Datasource) queryPoints(qm QueryModel) backend.DataResponse {
 }
 
 func (d *Datasource) queryValues(qm QueryModel) backend.DataResponse {
-	resp, err := d.client.GetValues(qm.SourceID, qm.AssetID, qm.SpaceID, qm.PointIDs)
+	resp, err := d.client.GetValues(qm.SourceID, qm.AssetID, qm.SpaceID, qm.PointIDs, qm.PointTypes)
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusInternal, err.Error())
 	}

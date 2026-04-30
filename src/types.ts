@@ -14,6 +14,7 @@ export interface NovantQuery extends DataQuery {
   assetId?: string;
   spaceId?: string;
   pointIds?: string;
+  pointTypes?: string;
   // Sources filter
   boundOnly?: boolean;
   // Trend options

@@ -51,7 +51,7 @@ func (c *pointCache) ensureSource(client *Client, sourceID string) {
 		return
 	}
 
-	resp, err := client.GetPoints(sourceID, "", "", "")
+	resp, err := client.GetPoints(sourceID, "", "", "", "")
 	if err != nil {
 		return
 	}

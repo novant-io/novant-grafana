@@ -46,11 +46,8 @@ func (c *Client) get(path string, params url.Values, result interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("API error %d: %s", resp.StatusCode, string(b))
-	}
-
+	// The API gzip-compresses every response, including 4xx errors, so we
+	// have to wrap with gzip.Reader before reading either path.
 	var reader io.Reader = resp.Body
 	if resp.Header.Get("Content-Encoding") == "gzip" {
 		gr, err := gzip.NewReader(resp.Body)
@@ -59,6 +56,11 @@ func (c *Client) get(path string, params url.Values, result interface{}) error {
 		}
 		defer gr.Close()
 		reader = gr
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(reader)
+		return fmt.Errorf("API error %d: %s", resp.StatusCode, string(b))
 	}
 
 	if err := json.NewDecoder(reader).Decode(result); err != nil {
@@ -127,7 +129,7 @@ func (c *Client) GetSources(sourceIDs string, boundOnly bool) (*SourcesResp, err
 	return &resp, nil
 }
 
-func (c *Client) GetPoints(sourceID, assetID, spaceID, pointIDs string) (*PointsResp, error) {
+func (c *Client) GetPoints(sourceID, assetID, spaceID, pointIDs, pointTypes string) (*PointsResp, error) {
 	params := url.Values{}
 	if sourceID != "" {
 		params.Set("source_id", sourceID)
@@ -138,6 +140,9 @@ func (c *Client) GetPoints(sourceID, assetID, spaceID, pointIDs string) (*Points
 	}
 	if pointIDs != "" {
 		params.Set("point_ids", pointIDs)
+	}
+	if pointTypes != "" {
+		params.Set("point_types", pointTypes)
 	}
 	var resp PointsResp
 	if err := c.get("/v1/points", params, &resp); err != nil {
@@ -146,7 +151,7 @@ func (c *Client) GetPoints(sourceID, assetID, spaceID, pointIDs string) (*Points
 	return &resp, nil
 }
 
-func (c *Client) GetValues(sourceID, assetID, spaceID, pointIDs string) (*ValuesResp, error) {
+func (c *Client) GetValues(sourceID, assetID, spaceID, pointIDs, pointTypes string) (*ValuesResp, error) {
 	params := url.Values{}
 	if sourceID != "" {
 		params.Set("source_id", sourceID)
@@ -157,6 +162,9 @@ func (c *Client) GetValues(sourceID, assetID, spaceID, pointIDs string) (*Values
 	}
 	if pointIDs != "" {
 		params.Set("point_ids", pointIDs)
+	}
+	if pointTypes != "" {
+		params.Set("point_types", pointTypes)
 	}
 	var resp ValuesResp
 	if err := c.get("/v1/values", params, &resp); err != nil {

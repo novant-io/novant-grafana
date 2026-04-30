@@ -37,10 +37,11 @@ type QueryModel struct {
 	AssetIDs  string `json:"assetIds"`
 	SourceIDs string `json:"sourceIds"`
 	// Points/values context
-	SourceID string `json:"sourceId"`
-	AssetID  string `json:"assetId"`
-	SpaceID  string `json:"spaceId"`
-	PointIDs string `json:"pointIds"`
+	SourceID   string `json:"sourceId"`
+	AssetID    string `json:"assetId"`
+	SpaceID    string `json:"spaceId"`
+	PointIDs   string `json:"pointIds"`
+	PointTypes string `json:"pointTypes"`
 	// Sources filter
 	BoundOnly bool `json:"boundOnly"`
 	// Trend options
