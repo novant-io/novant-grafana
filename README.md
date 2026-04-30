@@ -28,7 +28,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_INSTALL_PLUGINS=https://github.com/novant-io/novant-grafana/releases/download/v1.1.0/novant-datasource-1.1.0.zip;novant-datasource
+      - GF_INSTALL_PLUGINS=https://github.com/novant-io/novant-grafana/releases/download/v1.2.0/novant-datasource-1.2.0.zip;novant-datasource
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=novant-datasource
     volumes:
       - grafana-data:/var/lib/grafana

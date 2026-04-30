@@ -1,5 +1,7 @@
 # Changelog
 
+## Version 1.3.0 (working)
+
 ## Version 1.2.0 (30-Apr-2026)
 * Add `Point Types` filter for `points` and `values` queries — comma-separated
   point-type allowlist (e.g. `zone_air_temp_sensor,discharge_air_temp_sensor`),
